@@ -1,0 +1,15 @@
+platform :ios, '8.0'
+use_frameworks!
+
+target 'PhotoGalleryApp' do
+pod ‘RealmSwift’
+end
+
+target 'PhotoGalleryAppTests' do
+pod ‘RealmSwift’
+end
+
+target 'PhotoGalleryAppUITests' do
+pod ‘RealmSwift’
+end
+
