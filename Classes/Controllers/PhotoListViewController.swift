@@ -29,7 +29,7 @@ class PhotoListViewController: UIViewController {
 }
 
 private extension PhotoListViewController {
-    func configureBarItemButton() {
+    private func configureBarItemButton() {
         let rightAddButtonItem:UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add , target: self, action: #selector(PhotoListViewController.addPhoto))
         let rightThumbnailButtonItem:UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "thumbnail"), style: .Plain, target: self, action: #selector(PhotoListViewController.thumbnailView))
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Home", style: .Plain, target: self, action: #selector(PhotoListViewController.goToMainViewController))
@@ -116,7 +116,7 @@ extension PhotoListViewController: UITableViewDelegate {
 
 // MARK: - ListTableViewCell Delegates
 extension PhotoListViewController: ListTableViewCellDelegate {
-   
+    
     func configurefavouriteButton(cell: ListTableViewCell, index: Int) -> Bool {
         if let photosArray = photosArray{
             let state: Bool = photosArray[index].photofavorite

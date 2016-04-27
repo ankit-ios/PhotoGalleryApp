@@ -40,7 +40,7 @@ private extension HomeTableViewCell {
     /**
      This func is for draw a circle around Photo Count Label
      */
-    func configurePhotoCountLabel()  {
+  private func configurePhotoCountLabel()  {
         let size:CGFloat = 30.0
         photoCount.textColor = .blackColor()
         photoCount.textAlignment = .Center

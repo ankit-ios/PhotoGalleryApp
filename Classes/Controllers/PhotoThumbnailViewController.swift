@@ -32,7 +32,7 @@ class PhotoThumbnailViewController: UIViewController {
 }
 
 private extension PhotoThumbnailViewController {
-    func configureBarItemButton()  {
+    private func configureBarItemButton()  {
         let rightListViewButtonItem:UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "list"), style: .Plain, target: self, action: #selector(PhotoThumbnailViewController.listView))
         let rightAddButtonItem:UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add , target: self, action: #selector(PhotoThumbnailViewController.addPhoto))
         navigationItem.setRightBarButtonItems([rightListViewButtonItem, rightAddButtonItem], animated: true)

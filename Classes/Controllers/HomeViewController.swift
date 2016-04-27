@@ -6,7 +6,7 @@
 //  Copyright © 2016 Robosoft Technology. All rights reserved.
 //
 
- /// This class used for display Home screen (Main Screen).
+/// This class used for display Home screen (Main Screen).
 
 import UIKit
 import RealmSwift

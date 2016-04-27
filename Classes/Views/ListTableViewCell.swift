@@ -42,29 +42,16 @@ class ListTableViewCell: UITableViewCell {
         activityIndicator.startAnimating()
         let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
         self.favouriteButtonOutlet.setImage(image, forState: .Normal)
-        photoNameLabel.text = photosObject.photoName as? String
-        let imageName = photosObject.photoPath as? String
         
-        let imageDownloader = ImageDownloader(imageName: imageName ?? "")
-        imageDownloader.delegate = self
-        imageDownloader.queuePriority = .VeryLow
-        imageDownloader.qualityOfService = .Background
-        imageDownloader.completionBlock = {
-            if imageDownloader.cancelled {
-                return
+        photoNameLabel.text = photosObject.photoName as? String
+        let imageName = photosObject.photoPath as? String ?? ""
+        
+        self.downloadingOperationsQueue.startDownloading(imageName,completion: {(image) -> Void in
+            if let image = image {
+                self.backgroundImageView.image = image
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.hidden = true
             }
-        }
-        self.downloadingOperationsQueue.downloadQueue.addOperation(imageDownloader)
+        })
     }
 }
-
-// MARK: - ImageDownloader Delegate
-extension ListTableViewCell: ImageDownloaderDelegate {
-    
-    func downlodedImage(imageDownloader: ImageDownloader, image: UIImage) {
-        self.backgroundImageView.image = image
-        self.activityIndicator.stopAnimating()
-        self.activityIndicator.hidden = true
-    }
-}
-

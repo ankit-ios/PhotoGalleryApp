@@ -56,12 +56,12 @@ class PhotoFolderViewController: UIViewController {
             folderCategoryTextField.userInteractionEnabled = false
         }
     }
-   
+    
     override func viewDidDisappear(animated: Bool) {
         activityIndicator.stopAnimating()
     }
     
-        /**
+    /**
      This func is used for accessing all the default photots from library
      */
     @IBAction func selectLibraryButton(sender: UIButton) {
@@ -93,7 +93,7 @@ class PhotoFolderViewController: UIViewController {
 }
 
 private extension PhotoFolderViewController {
-  
+    
     @objc func configureBarItemButton() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self,action: #selector(PhotoFolderViewController.configureSaveButton))
     }
@@ -231,5 +231,5 @@ extension UIColor {
         let g = CGFloat.random()
         let b = CGFloat.random()
         return UIColor(red: r, green: g, blue: b, alpha: 0.2)
-}
+    }
 }

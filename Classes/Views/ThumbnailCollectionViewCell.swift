@@ -51,31 +51,16 @@ class ThumbnailCollectionViewCell: UICollectionViewCell {
         let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
         self.favouriteButtonOutlet.setImage(image, forState: .Normal)
         self.index = index
-        
-        let imageDownloader = ImageDownloader(imageName: imageName)
-        imageDownloader.delegate = self
-        imageDownloader.queuePriority = .VeryLow
-        imageDownloader.qualityOfService = .Background
-        imageDownloader.completionBlock = {
-            if imageDownloader.cancelled {
-                return
+        self.downloadingOperationsQueue.startDownloading(imageName,completion: {(image) -> Void in
+            if let image = image {
+                self.thumbnailPhotoImageView.image = image
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.hidden = true
             }
-        }
-        self.downloadingOperationsQueue.downloadQueue.addOperation(imageDownloader)
+        })
     }
     
     func deletePhoto()  {
         delegate?.deletePhoto(self, index: index)
     }
 }
-
-// MARK: - ImageDownloader Delegate
-extension ThumbnailCollectionViewCell: ImageDownloaderDelegate {
-    
-    func downlodedImage(imageDownloader: ImageDownloader, image: UIImage) {
-        self.thumbnailPhotoImageView.image = image
-        self.activityIndicator.stopAnimating()
-        self.activityIndicator.hidden = true
-    }
-}
-

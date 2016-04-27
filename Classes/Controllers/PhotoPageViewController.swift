@@ -33,7 +33,7 @@ private extension PhotoPageViewController {
     /**
      This is default func, this is used for get new controller for displaying Photos in Page View Type.
      */
-    func getViewControllerAtIndex(index: NSInteger) -> PhotoPageContentViewController {
+    private func getViewControllerAtIndex(index: NSInteger) -> PhotoPageContentViewController {
         let pageContentViewController = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoPageContentViewController") as? PhotoPageContentViewController
         if let pageContentViewController = pageContentViewController {
             if let photosArray = photosArray {
