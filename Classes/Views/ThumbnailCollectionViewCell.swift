@@ -13,7 +13,7 @@
 import UIKit
 import RealmSwift
 
-protocol ThumbnailCollectionViewCellDelegate {
+protocol ThumbnailCollectionViewCellDelegate: class {
     func configurefavouriteButton(cell: ThumbnailCollectionViewCell, index: Int) -> Bool
     func deletePhoto(cell: ThumbnailCollectionViewCell, index: Int)
 }
@@ -24,7 +24,8 @@ class ThumbnailCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var thumbnailPhotoImageView: UIImageView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var delegate: ThumbnailCollectionViewCellDelegate?
+    let downloadingOperationsQueue = DownloadingOperationsQueue()
+    weak var delegate: ThumbnailCollectionViewCellDelegate?
     var index: Int = 0
     
     /*!
@@ -43,21 +44,24 @@ class ThumbnailCollectionViewCell: UICollectionViewCell {
      * @discussion This func is for configuring cell of collection view (Thumbnail View of Photos)
      * @param imagePath for local path of image, index for add value into self.index for each cell, state
      */
-    func configureThumbnailCell(imagePath: String , index: Int, favouriteButtonState: Bool) {
+    func configureThumbnailCell(imageName: String , index: Int, favouriteButtonState: Bool) {
         activityIndicator.hidden = false
         activityIndicator.startAnimating()
         thumbnailPhotoImageView.image = UIImage(named: "defaultImage")
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
-            let image = UIImage (contentsOfFile: imagePath)
-            dispatch_async(dispatch_get_main_queue()) {
-                self.thumbnailPhotoImageView.image = image
-                let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
-                self.favouriteButtonOutlet.setImage(image, forState: .Normal)
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator.hidden = true
-            }
-        })
+        let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
+        self.favouriteButtonOutlet.setImage(image, forState: .Normal)
         self.index = index
+        
+        let imageDownloader = ImageDownloader(imageName: imageName)
+        imageDownloader.delegate = self
+        imageDownloader.queuePriority = .VeryLow
+        imageDownloader.qualityOfService = .Background
+        imageDownloader.completionBlock = {
+            if imageDownloader.cancelled {
+                return
+            }
+        }
+        self.downloadingOperationsQueue.downloadQueue.addOperation(imageDownloader)
     }
     
     func deletePhoto()  {
@@ -65,4 +69,13 @@ class ThumbnailCollectionViewCell: UICollectionViewCell {
     }
 }
 
+// MARK: - ImageDownloader Delegate
+extension ThumbnailCollectionViewCell: ImageDownloaderDelegate {
+    
+    func downlodedImage(imageDownloader: ImageDownloader, image: UIImage) {
+        self.thumbnailPhotoImageView.image = image
+        self.activityIndicator.stopAnimating()
+        self.activityIndicator.hidden = true
+    }
+}
 

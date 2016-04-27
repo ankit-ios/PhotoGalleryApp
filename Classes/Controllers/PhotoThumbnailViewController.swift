@@ -27,6 +27,8 @@ class PhotoThumbnailViewController: UIViewController {
         collectionViewInstance.reloadData()
         configureBarItemButton()
     }
+    override func viewDidDisappear(animated: Bool) {
+    }
 }
 
 private extension PhotoThumbnailViewController {
@@ -81,10 +83,9 @@ extension PhotoThumbnailViewController: UICollectionViewDataSource {
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         if let cell = collectionView.dequeueReusableCellWithReuseIdentifier("thumbnailCell", forIndexPath: indexPath) as? ThumbnailCollectionViewCell {
             if let photosArray = photosArray {
-                let photoPath = photosArray[indexPath.row].photoPath
+                let photoName = photosArray[indexPath.row].photoPath as? String
                 let state = photosArray[indexPath.row].photofavorite
-                let filename = getDocumentsDirectory().stringByAppendingPathComponent((photoPath as? String)!)
-                cell.configureThumbnailCell(filename, index: indexPath.row, favouriteButtonState: state)
+                cell.configureThumbnailCell(photoName ?? "", index: indexPath.row, favouriteButtonState: state)
                 cell.delegate = self
                 cell.layer.borderColor = UIColor.grayColor().CGColor
                 cell.layer.borderWidth = 1
@@ -93,16 +94,6 @@ extension PhotoThumbnailViewController: UICollectionViewDataSource {
             return cell
         }
         return UICollectionViewCell()
-    }
-    
-    /*!
-     * @discussion This is for finding local path of local directory
-     * @return Given local path of Document in simulator where all Photos is stored
-     */
-    func getDocumentsDirectory() -> NSString {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
     }
 }
 

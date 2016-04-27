@@ -11,7 +11,7 @@
 import UIKit
 import RealmSwift
 
-protocol ListTableViewCellDelegate {
+protocol ListTableViewCellDelegate: class {
     func configurefavouriteButton(cell: ListTableViewCell, index: Int) -> Bool
 }
 
@@ -22,10 +22,11 @@ class ListTableViewCell: UITableViewCell {
     @IBOutlet weak var favouriteButtonOutlet: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var delegate: ListTableViewCellDelegate?
+    let downloadingOperationsQueue = DownloadingOperationsQueue()
+    weak var delegate: ListTableViewCellDelegate?
     var index: Int = 0
     
-    @IBAction func thumbnailPhotoImageView(sender: UIButton) {
+    @IBAction func listPhotoImageView(sender: UIButton) {
         let favouriteButtonState: Bool = self.delegate?.configurefavouriteButton(self , index: index) ?? false
         let image: UIImage? = favouriteButtonState ? UIImage (named: "favourite") :  UIImage (named: "notfavourite")
         favouriteButtonOutlet.setImage(image, forState: .Normal)
@@ -36,31 +37,34 @@ class ListTableViewCell: UITableViewCell {
      * @param we pass PhotosModel(That have each photo information)
      */
     func configureListCell(photosObject: PhotosModel, index: Int, favouriteButtonState: Bool) {
+        self.index = index
         activityIndicator.hidden = false
         activityIndicator.startAnimating()
-        self.index = index
+        let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
+        self.favouriteButtonOutlet.setImage(image, forState: .Normal)
         photoNameLabel.text = photosObject.photoName as? String
-        let photoPath = photosObject.photoPath
-        let imagePath = getDocumentsDirectory().stringByAppendingPathComponent((photoPath as? String) ?? "")
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
-            let image = UIImage (contentsOfFile: imagePath)
-            dispatch_async(dispatch_get_main_queue()) {
-                self.backgroundImageView.image = image
-                let image: UIImage? = (favouriteButtonState ? UIImage (named: "favourite") : UIImage (named: "notfavourite")) ?? nil
-                self.favouriteButtonOutlet.setImage(image, forState: .Normal)
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator.hidden = true
+        let imageName = photosObject.photoPath as? String
+        
+        let imageDownloader = ImageDownloader(imageName: imageName ?? "")
+        imageDownloader.delegate = self
+        imageDownloader.queuePriority = .VeryLow
+        imageDownloader.qualityOfService = .Background
+        imageDownloader.completionBlock = {
+            if imageDownloader.cancelled {
+                return
             }
-        })
-    }
-    
-    /*!
-     * @discussion This is for finding local path of local directory
-     * @return Given local path of Document in simulator where all images is stored
-     */
-    func getDocumentsDirectory() -> NSString {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
+        }
+        self.downloadingOperationsQueue.downloadQueue.addOperation(imageDownloader)
     }
 }
+
+// MARK: - ImageDownloader Delegate
+extension ListTableViewCell: ImageDownloaderDelegate {
+    
+    func downlodedImage(imageDownloader: ImageDownloader, image: UIImage) {
+        self.backgroundImageView.image = image
+        self.activityIndicator.stopAnimating()
+        self.activityIndicator.hidden = true
+    }
+}
+
