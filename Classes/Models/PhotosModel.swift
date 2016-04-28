@@ -18,11 +18,9 @@ class PhotosModel: Object {
     dynamic var photofavorite: Bool = false
  
     /**
-     This func is for create Primary key for Perticular Model class Object
-     
+     This func is for create Primary key for Perticular Model class Object. because of this Key, we get unique instance of every photo 
      - returns: return Primary Key in string format
      */
-    
     override static func primaryKey() -> String? {
         return "photoID"
     }

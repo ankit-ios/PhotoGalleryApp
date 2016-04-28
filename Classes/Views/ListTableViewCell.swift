@@ -6,15 +6,21 @@
 //  Copyright © 2016 Robosoft Technology. All rights reserved.
 //
 
-///  This class is for List View of Photos and inherite from UITableViewCell.
+
 
 import UIKit
 import RealmSwift
 
+/*!
+ * @discussion This Protocol is used for configuring Faverate Button
+ */
 protocol ListTableViewCellDelegate: class {
     func configurefavouriteButton(cell: ListTableViewCell, index: Int) -> Bool
 }
 
+/*!
+ * @discussion This class is for List View of Photos and inherite from UITableViewCell.
+ */
 class ListTableViewCell: UITableViewCell {
     
     @IBOutlet weak var photoNameLabel: UILabel!
@@ -26,12 +32,18 @@ class ListTableViewCell: UITableViewCell {
     weak var delegate: ListTableViewCellDelegate?
     var index: Int = 0
     
-    @IBAction func listPhotoImageView(sender: UIButton) {
+    /*!
+     * @discussion This is favourite Button action, when we tap on favourite button then delegate pass to PhotoListViewController and confirm protocol
+     * @param we pass ListTableViewCell and currnet selected collection view cell index
+     */
+    @IBAction func favouriteButton(sender: UIButton) {
         let favouriteButtonState: Bool = self.delegate?.configurefavouriteButton(self , index: index) ?? false
         let image: UIImage? = favouriteButtonState ? UIImage (named: "favourite") :  UIImage (named: "notfavourite")
         favouriteButtonOutlet.setImage(image, forState: .Normal)
     }
-    
+}
+
+extension ListTableViewCell {
     /*!
      * @discussion This func is for configuring cell of
      * @param we pass PhotosModel(That have each photo information)

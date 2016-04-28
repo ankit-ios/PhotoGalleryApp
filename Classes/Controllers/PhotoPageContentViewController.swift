@@ -17,7 +17,9 @@ class PhotoPageContentViewController: UIViewController {
     @IBOutlet var pageContentView: UIView!
     
     var photoPath: String?
+    let downloadingOperationsQueue = DownloadingOperationsQueue()
     
+    //TODO: - ViewDidLoad
     override func viewDidLoad() {
         configureImageView()
         initializeGestureRecognizer()
@@ -28,15 +30,18 @@ class PhotoPageContentViewController: UIViewController {
 
 private extension PhotoPageContentViewController {
     
+    //TODO: - Configure Gestures
     private func initializeGestureRecognizer() {
         //For RotateGesture Recoginzation
-        let rotateGesture: UIRotationGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(PhotoPageContentViewController.recognizeRotateGesture))
+        let rotateGesture: UIRotationGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(recognizeRotateGesture))
         pageContentView.addGestureRecognizer(rotateGesture)
         
         //For PinchGesture Recoginzation
-        let pinchGesture: UIPinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(PhotoPageContentViewController.recognizePinchGesture))
+        let pinchGesture: UIPinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(recognizePinchGesture))
         pageContentView.addGestureRecognizer(pinchGesture)
     }
+    
+    //TODO: - Gesture Actions
     @objc func recognizeRotateGesture(sender: UIRotationGestureRecognizer) {
         sender.view!.transform = CGAffineTransformRotate(sender.view!.transform, sender.rotation)
         sender.rotation = 0
@@ -48,8 +53,21 @@ private extension PhotoPageContentViewController {
     }
     
     /**
+     This func is used for setting the image in imageview which is fetched from localfile
+     */
+    //TODO: - Set Image in imageview
+    private func setImageInImageView() {
+        self.downloadingOperationsQueue.startDownloading(photoPath ?? "",completion: {(image) -> Void in
+            if let image = image {
+                self.photosImageView.image = image
+            }
+        })
+    }
+    
+    /**
      This func is used for configure ImageView, ImageView Border, ImageView shadow
      */
+    //TODO: - configure ImageView
     private func configureImageView() {
         photosImageView.layer.cornerRadius = 5.0
         photosImageView.layer.shadowRadius = 5.0
@@ -59,25 +77,4 @@ private extension PhotoPageContentViewController {
         photosImageView.layer.shadowColor = color
         photosImageView.layer.borderColor = color
     }
-    
-    /**
-     This func is used for setting the image in imageview which is fetched from localfile
-     */
-    private func setImageInImageView() {
-        let filename = getDocumentsDirectory().stringByAppendingPathComponent((photoPath ?? ""))
-        dispatch_async(dispatch_get_main_queue()){
-            self.photosImageView.image = UIImage (contentsOfFile: filename )
-        }
-    }
-    
-    /*!
-     * @discussion This is for finding local path of local directory
-     * @return Given local path of Document in simulator where all images is stored
-     */
-    private func getDocumentsDirectory() -> NSString {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
-    }
-    
 }

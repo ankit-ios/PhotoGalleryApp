@@ -17,6 +17,7 @@ class PhotoPageViewController: UIPageViewController {
     var pageIndicatorIndex: Int = 0
     var photosCount: Int = 0
     
+    //MARK: - ViewDidLoad
     override func viewDidLoad() {
         photosCount = photosArray?.count ?? 0
         super.viewDidLoad()
@@ -30,6 +31,7 @@ class PhotoPageViewController: UIPageViewController {
 }
 
 private extension PhotoPageViewController {
+    
     /**
      This is default func, this is used for get new controller for displaying Photos in Page View Type.
      */
@@ -38,6 +40,7 @@ private extension PhotoPageViewController {
         if let pageContentViewController = pageContentViewController {
             if let photosArray = photosArray {
                 pageContentViewController.photoPath = photosArray[index].photoPath as? String
+                navigationItem.title = photosArray[index].photoName as? String
             }
             return pageContentViewController
         }
@@ -47,6 +50,7 @@ private extension PhotoPageViewController {
 
 // MARK: - PageViewController DataSource
 extension PhotoPageViewController: UIPageViewControllerDataSource {
+    
     /**
      This func is called, when we swiped image left side.
      - returns: Before Page
@@ -69,6 +73,7 @@ extension PhotoPageViewController: UIPageViewControllerDataSource {
      This func is called, when we swiped image right side.
      - returns: After Page
      */
+    //TODO: - delegate methods for swipe left or right
     func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
         if (pageIndicatorIndex == NSNotFound) {
             return nil
@@ -95,6 +100,7 @@ extension PhotoPageViewController: UIPageViewControllerDataSource {
     /**
      This func is for indicator position
      */
+    //TODO: - PageIndicator delegate
     func presentationIndexForPageViewController(pageViewController: UIPageViewController) -> Int {
         return pageIndicatorIndex ?? 0
     }

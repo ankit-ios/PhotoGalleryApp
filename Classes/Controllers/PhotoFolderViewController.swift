@@ -6,19 +6,37 @@
 //  Copyright © 2016 Robosoft Technology. All rights reserved.
 //
 
-
-/**
- This class uesd for add Photo folder and Photos.
- */
-
 import UIKit
 import RealmSwift
 
+/**
+ This enum is for finding, what user want to create either folder or save photo into created folder
+  - AddFolderWithPhoto: created Folder and can add one photo also
+ - AddPhotoInFolder: photo add in selected folder
+ */
 enum AddPhotoType {
     case AddFolderWithPhoto
     case AddPhotoInFolder
 }
 
+/**
+ Hide the Keyboard when user tap on the screen except the text field
+ */
+extension UIViewController {
+    
+    func hideKeyboard() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismisKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    func dismisKeyboard() {
+        view.endEditing(true)
+    }
+}
+
+/**
+ This class uesd for add Photo folder and Photos.
+ */
 class PhotoFolderViewController: UIViewController {
     
     @IBOutlet weak var folderNameTextField: UITextField!
@@ -34,11 +52,9 @@ class PhotoFolderViewController: UIViewController {
     var photosObject: PhotosModel?
     var addPhotoType = AddPhotoType.AddFolderWithPhoto
     
-    class MyImageStorage {
-        var imagePath: NSString?
-    }
-    
+    //MARK: - ViewDidLoad
     override func viewDidLoad() {
+        hideKeyboard()
         super.viewDidLoad()
     }
     
@@ -95,25 +111,7 @@ class PhotoFolderViewController: UIViewController {
 private extension PhotoFolderViewController {
     
     @objc func configureBarItemButton() {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self,action: #selector(PhotoFolderViewController.configureSaveButton))
-    }
-    
-    func configureSelectedImageView() {
-        selectedImageView.layer.borderWidth = 4
-        selectedImageView.layer.cornerRadius = 5.0
-        selectedImageView.clipsToBounds = true
-        selectedImageView.layer.borderColor = UIColor.grayColor().CGColor
-    }
-    
-    /**
-     This func is used for get current date at folder creation time.
-     */
-    func configureTimeAndDate() {
-        let currentDate = NSDate()
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateStyle = NSDateFormatterStyle.LongStyle
-        let date = dateFormatter.stringFromDate(currentDate)
-        folderCreationDate.text = ("\(date)")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self,action: #selector(configureSaveButton))
     }
     
     /**
@@ -123,29 +121,19 @@ private extension PhotoFolderViewController {
         activityIndicatorView.hidden = false
         activityIndicator.startAnimating()
         photosObject = PhotosModel()
+        // if we add folder, then this block will execute
         if addPhotoType == .AddFolderWithPhoto {
             photoFolderObject = PhotoFolder()
-            photoFolderObject?.photoFolderID = NSUUID().UUIDString ?? ""
             photoFolderObject?.photoFolderName = folderNameTextField.text ?? ""
             photoFolderObject?.photoCategory = folderCategoryTextField.text ?? ""
             photoFolderObject?.folderCreationDate = folderCreationDate.text ?? ""
             let backgroundColorInData = NSKeyedArchiver.archivedDataWithRootObject(UIColor.randomColor())
             photoFolderObject?.folderBackGroundColor = backgroundColorInData
+            
             photosObject?.photoID = NSUUID().UUIDString
             photosObject?.photoName = folderNameTextField.text ?? ""
-            if let selectedImage = selectedImage {
-                let imageData = UIImagePNGRepresentation(selectedImage)
-                let imageName = photosObject?.photoID
-                if let imageName = imageName {
-                    let filename = getDocumentsDirectory().stringByAppendingPathComponent("\(imageName).png")
-                    photosObject?.photoPath = "\(imageName).png"
-                    dispatch_async(dispatch_get_main_queue()) {
-                        if let imageData = imageData {
-                            imageData.writeToFile(filename, atomically: true)
-                        }
-                    }
-                }
-            }
+            savePhotoInLocalFile()
+            handleEmptyCases()
             try! uiRealm.write({ () -> Void in
                 if let photosObject = photosObject {
                     photoFolderObject?.photos.append(photosObject)
@@ -159,19 +147,8 @@ private extension PhotoFolderViewController {
         else if addPhotoType == .AddPhotoInFolder {
             photosObject?.photoID = NSUUID().UUIDString
             photosObject?.photoName = folderNameTextField.text ?? ""
-            if let selectedImage = selectedImage {
-                let imageData = UIImagePNGRepresentation(selectedImage)
-                let imageName = photosObject?.photoID
-                if let imageName = imageName {
-                    let filename = getDocumentsDirectory().stringByAppendingPathComponent("\(imageName).png")
-                    photosObject?.photoPath = "\(imageName).png"
-                    dispatch_async(dispatch_get_main_queue()) {
-                        if let imageData = imageData {
-                            imageData.writeToFile(filename, atomically: true)
-                        }
-                    }
-                }
-            }
+            savePhotoInLocalFile()
+            handleEmptyCases()
             try! uiRealm.write({ () -> Void in
                 if let photosObject = photosObject {
                     photoFolderObject?.photos.append(photosObject)
@@ -182,14 +159,68 @@ private extension PhotoFolderViewController {
         navigationController?.popViewControllerAnimated(true)
     }
     
-    /*!
-     * @discussion This is for finding local path of local directory
-     * @return Given local path of Document in simulator where all images is stored
+    /**
+     This func is used for save selected photo from imagePicker into local file
      */
-    func getDocumentsDirectory() -> NSString {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
+    private func savePhotoInLocalFile() {
+        if let selectedImage = selectedImage {
+            let imageData = UIImagePNGRepresentation(selectedImage)
+            let imageName = photosObject?.photoID
+            if let imageName = imageName {
+                let filename = GetDirectoryPath.getDocumentsDirectory().stringByAppendingPathComponent("\(imageName).png")
+                photosObject?.photoPath = "\(imageName).png"
+                //Here, we save image into local file
+                dispatch_async(dispatch_get_main_queue()) {
+                    if let imageData = imageData {
+                        imageData.writeToFile(filename, atomically: true)
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     This func is used for Handle all empty cases, when user forgot to fill any text Field or Image view then this method is called
+     */
+    private func handleEmptyCases() {
+        if (folderNameTextField.text?.isEmpty) == true {
+            try! uiRealm.write({ () -> Void in
+                photoFolderObject?.photoFolderName = "folder"
+                photosObject?.photoName = "image"
+            })
+        }
+        
+        if (folderCategoryTextField.text?.isEmpty) == true {
+            try! uiRealm.write({ () -> Void in
+                photoFolderObject?.photoCategory = "category"
+            })
+        }
+        
+        if (selectedImage == nil) {
+            selectedImage = UIImage(named: "placeholderImage")
+            savePhotoInLocalFile()
+        }
+    }
+    
+    /**
+     This func is used for configuring Imageview
+     */
+    private func configureSelectedImageView() {
+        selectedImageView.layer.borderWidth = 4
+        selectedImageView.layer.cornerRadius = 5.0
+        selectedImageView.clipsToBounds = true
+        selectedImageView.layer.borderColor = UIColor.grayColor().CGColor
+    }
+    
+    /**
+     This func is used for get current date at folder creation time.
+     */
+    private func configureTimeAndDate() {
+        let currentDate = NSDate()
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateStyle = NSDateFormatterStyle.LongStyle
+        let date = dateFormatter.stringFromDate(currentDate)
+        folderCreationDate.text = ("\(date)")
     }
 }
 
@@ -233,3 +264,5 @@ extension UIColor {
         return UIColor(red: r, green: g, blue: b, alpha: 0.2)
     }
 }
+
+

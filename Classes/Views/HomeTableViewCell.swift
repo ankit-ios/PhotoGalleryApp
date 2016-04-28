@@ -22,7 +22,6 @@ class HomeTableViewCell: UITableViewCell {
      * @discussion This method is for configure cell with content
      * @param PhotoFolder Object, this contain all the information related to folder
      */
-    
     func configureFolderCell(forPhotoFolderObject photoFolderObject: PhotoFolder)  {
         configurePhotoCountLabel()
         folderName.text = photoFolderObject.photoFolderName as? String
@@ -37,8 +36,9 @@ class HomeTableViewCell: UITableViewCell {
 }
 
 private extension HomeTableViewCell {
+    
     /**
-     This func is for draw a circle around Photo Count Label
+     This func is for draw a circle around Photo Count value
      */
   private func configurePhotoCountLabel()  {
         let size:CGFloat = 30.0

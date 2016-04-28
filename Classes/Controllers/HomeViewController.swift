@@ -13,12 +13,15 @@ import RealmSwift
 
 class HomeViewController: UIViewController {
     
-    var photoFolderObject: Results<PhotoFolder>?
-    var photosObject: PhotosModel?
     @IBOutlet weak var tableViewInstance: UITableView!
     @IBOutlet weak var activityIndicatorView: UIView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
+    var photoFolderObject: Results<PhotoFolder>?
+    var photosObject: PhotosModel?
+    let cellIdentifier = "PhotoFolderCell"
+    
+    //MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         photoFolderObject = uiRealm.objects(PhotoFolder)
@@ -43,7 +46,6 @@ class HomeViewController: UIViewController {
             {
                 if let photoFolderObject = photoFolderObject {
                     photoThumbnailViewControllerInstance.photoFolderObject = photoFolderObject[indexPath.row]
-                    photoThumbnailViewControllerInstance.photosArray = photoFolderObject[indexPath.row].photos
                 }
             }
         }
@@ -60,7 +62,7 @@ extension HomeViewController : UITableViewDataSource {
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCellWithIdentifier("PhotoFolderCell", forIndexPath: indexPath) as? HomeTableViewCell {
+        if let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as? HomeTableViewCell {
             if let photoFolderObject = photoFolderObject {
                 cell.configureFolderCell(forPhotoFolderObject: photoFolderObject[indexPath.row])
             }
@@ -90,8 +92,15 @@ extension HomeViewController : UITableViewDelegate {
             
             if let photoFolderObject = photoFolderObject {
                 if photoFolderObject.count > indexPath.row {
-                    
                     let deleteFolder = photoFolderObject[indexPath.row]
+                    // This loop is using for deleting all the photos, which are saved locally in simulator in document folder
+                    for photos in deleteFolder.photos {
+                        let filename = GetDirectoryPath.getDocumentsDirectory().stringByAppendingPathComponent("\(photos.photoPath ?? "")")
+                        if NSFileManager.defaultManager().fileExistsAtPath(filename ) {
+                            try! NSFileManager.defaultManager().removeItemAtPath(filename)
+                        }
+                    }
+                    //Here, we delete folder from realm, so automatically all photo data will delete
                     try! uiRealm.write({ () -> Void in
                         uiRealm.delete(deleteFolder)
                         tableViewInstance.reloadData()

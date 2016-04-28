@@ -15,11 +15,15 @@ import RealmSwift
 class PhotoThumbnailViewController: UIViewController {
     
     @IBOutlet weak var collectionViewInstance: UICollectionView!
+    
     var photoFolderObject: PhotoFolder?
     var photosArray: List<PhotosModel>?
     let imagePicker = UIImagePickerController()
+    let cellIdentifier = "thumbnailCell"
     
+    //MARK: - ViewDidLoad
     override func viewDidLoad() {
+        photosArray = photoFolderObject?.photos
         super.viewDidLoad()
     }
     
@@ -27,16 +31,17 @@ class PhotoThumbnailViewController: UIViewController {
         collectionViewInstance.reloadData()
         configureBarItemButton()
     }
+    
     override func viewDidDisappear(animated: Bool) {
     }
 }
 
 private extension PhotoThumbnailViewController {
     private func configureBarItemButton()  {
-        let rightListViewButtonItem:UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "list"), style: .Plain, target: self, action: #selector(PhotoThumbnailViewController.listView))
-        let rightAddButtonItem:UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add , target: self, action: #selector(PhotoThumbnailViewController.addPhoto))
+        let rightListViewButtonItem:UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "list"), style: .Plain, target: self, action: #selector(listView))
+        let rightAddButtonItem:UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add , target: self, action: #selector(addPhoto))
         navigationItem.setRightBarButtonItems([rightListViewButtonItem, rightAddButtonItem], animated: true)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Home", style: .Plain, target: self, action: #selector(PhotoThumbnailViewController.goToMainViewController))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Home", style: .Plain, target: self, action: #selector(goToMainViewController))
     }
     
     /**
@@ -46,10 +51,10 @@ private extension PhotoThumbnailViewController {
         let photoListViewController = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoListViewController") as? PhotoListViewController
         if let photoListViewController = photoListViewController {
             photoListViewController.photoFolderObject = photoFolderObject
-            photoListViewController.photosArray = photosArray
-            navigationController?.pushViewController(photoListViewController, animated: true)
+            navigationController?.showViewController(photoListViewController, sender: self)
         }
     }
+    
     /**
      This func is used for goto PhotoFolderViewController for adding new photo in selected folder
      */
@@ -72,6 +77,7 @@ private extension PhotoThumbnailViewController {
 
 // MARK: - CollectionView DataSource
 extension PhotoThumbnailViewController: UICollectionViewDataSource {
+    //TODO: - getting number of cell
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return photosArray?.count ?? 0
     }
@@ -81,7 +87,7 @@ extension PhotoThumbnailViewController: UICollectionViewDataSource {
      - returns: ThumbnailCollectionViewCell
      */
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier("thumbnailCell", forIndexPath: indexPath) as? ThumbnailCollectionViewCell {
+        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellIdentifier, forIndexPath: indexPath) as? ThumbnailCollectionViewCell {
             if let photosArray = photosArray {
                 let photoName = photosArray[indexPath.row].photoPath as? String
                 let state = photosArray[indexPath.row].photofavorite
@@ -99,6 +105,8 @@ extension PhotoThumbnailViewController: UICollectionViewDataSource {
 
 // MARK: - CollectionView Delegate
 extension PhotoThumbnailViewController: UICollectionViewDelegate {
+    
+    //TODO: - when Select any cell, this method will called
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let photoPageViewController = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoPageViewController") as? PhotoPageViewController
         if let photoPageViewController = photoPageViewController {
@@ -108,30 +116,29 @@ extension PhotoThumbnailViewController: UICollectionViewDelegate {
         }
         collectionViewInstance.deselectItemAtIndexPath(indexPath, animated: true)
     }
-    func collectionView(collectionView: UICollectionView, shouldShowMenuForItemAtIndexPath indexPath: NSIndexPath) -> Bool
-    {
-        
+    
+    //TODO: - when we longpress any cell, then delete menu item button will popup
+    func collectionView(collectionView: UICollectionView, shouldShowMenuForItemAtIndexPath indexPath: NSIndexPath) -> Bool {
         let delete = UIMenuItem(title: "delete", action:#selector(ThumbnailCollectionViewCell.deletePhoto))
         UIMenuController.sharedMenuController().menuItems = [delete]
         return true
-        
     }
     
-    func collectionView(collectionView: UICollectionView, canPerformAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool
-    {
+    func collectionView(collectionView: UICollectionView, canPerformAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool {
         return action == #selector(ThumbnailCollectionViewCell.deletePhoto)
     }
     
     func collectionView(collectionView: UICollectionView, performAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?)
     {
         if action == #selector(ThumbnailCollectionViewCell.deletePhoto) {
-            print ("Delete Photo ")
+            print ("Delete Photo from Thumbnail View ")
         }
     }
 }
 
 // MARK: - CollectionView Delegate FlowLayout
 extension PhotoThumbnailViewController: UICollectionViewDelegateFlowLayout {
+    
     /**
      This func is used for resizing cell size
      - returns: new Cell Size
@@ -150,7 +157,7 @@ extension PhotoThumbnailViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - Image PickerController Delegate
 extension PhotoThumbnailViewController: UIImagePickerControllerDelegate ,UINavigationControllerDelegate {
-    
+    //TODO: - ImagePicker delegates, when click cancel button
     func imagePickerController( picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         dismissViewControllerAnimated(true, completion: nil)
     }
@@ -163,6 +170,7 @@ extension PhotoThumbnailViewController: UIImagePickerControllerDelegate ,UINavig
 // MARK: - Conferm Protocol of ThumbnailCollectionViewCellDelegate
 extension PhotoThumbnailViewController: ThumbnailCollectionViewCellDelegate {
     
+    //TODO: - this protocol method called from cell class for configure faverate button
     func configurefavouriteButton(cell: ThumbnailCollectionViewCell, index: Int) -> Bool {
         if let photosArray = photosArray{
             let state: Bool = photosArray[index].photofavorite
@@ -184,9 +192,16 @@ extension PhotoThumbnailViewController: ThumbnailCollectionViewCellDelegate {
         return false
     }
     
+    //TODO: - This protocol method called from cell class for deleting cell
     func deletePhoto(cell: ThumbnailCollectionViewCell, index: Int)  {
         try! uiRealm.write({ () -> Void in
             if let photosArray = photosArray {
+                // here, we delete the photo, which is saved locally in simulator in document folder
+                let filename = GetDirectoryPath.getDocumentsDirectory().stringByAppendingPathComponent("\(photosArray[index].photoPath ?? "")")
+                if NSFileManager.defaultManager().fileExistsAtPath(filename ) {
+                    try! NSFileManager.defaultManager().removeItemAtPath(filename)
+                }
+                //here, we delete photo from Realm
                 uiRealm.delete(photosArray[index])
             }
         })
